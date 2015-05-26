@@ -1,0 +1,8 @@
+prefix=/home/gabs48/src/catkin_ws/devel
+
+Name: ir_joy_cmd
+Description: Description of ir_joy_cmd
+Version: 0.1.0
+Cflags: 
+Libs: -L/home/gabs48/src/catkin_ws/devel/lib 
+Requires: 

@@ -1,0 +1,8 @@
+prefix=/home/gabs48/src/catkin_ws/devel
+
+Name: chrob_imu
+Description: Description of chrob_imu
+Version: 0.1.0
+Cflags: -I/home/gabs48/src/catkin_ws/devel/include
+Libs: -L/home/gabs48/src/catkin_ws/devel/lib 
+Requires: 
