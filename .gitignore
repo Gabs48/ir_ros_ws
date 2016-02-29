@@ -1,2 +1,5 @@
 # All built files
 build/*
+
+# All devel files
+devel/*
