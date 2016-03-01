@@ -3,3 +3,6 @@ build/*
 
 # All devel files
 devel/*
+
+# Compiled python scripts
+*.pyc

@@ -1,0 +1,8 @@
+#! /usr/bin/env python
+
+from ir_voice.voice import *
+
+if __name__ == '__main__':
+	
+	v = Voice()
+	v.start_ros_node() 
