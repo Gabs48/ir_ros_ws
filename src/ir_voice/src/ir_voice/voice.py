@@ -140,7 +140,7 @@ class Voice:
 	def __ros_srv(self, msg):
 		"ROS service to enable microphone listening"
 
-		self.listen()
+		self.listen("fr.wav")
 
 		return TriggerResponse(self.sr_success_bool, self.sr_success_str)
 

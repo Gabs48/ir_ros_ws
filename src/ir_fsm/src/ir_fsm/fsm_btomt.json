@@ -1,0 +1,156 @@
+{
+	"comments": {
+		"name" : "BToMT",
+		"authors" : "Valentin Beublet, Gabriel Urbain",
+		"email" : "gabriel.urbain@ugent.be",
+		"version" : "0.1",
+		"node_types" : 	[	"speak",
+							"listen_branch", 
+							"listen_store", 
+							"speak_store", 
+							"timed_move",
+							"idle",
+						]
+	},
+	
+	"init_state" : "state_bonjour",
+	"idle_state" : "state_default",
+	
+	"state_bonjour" : {
+		"type" : "speak",
+		"content" : { 	"type" : "normal",
+						"content" : "Bonjour chers visiteur du BtoMT, mon nom est Milo. J'aimerais un jour vous faire visiter le musée royal de Mariemont mais je ne suis encore qu'un prototype. Puis-je vous faire une petite démonstration ?",
+		},
+		"next" : "state_bonjour_rep",
+	},
+		
+	"state_bonjour_rep" : {
+		"type" : "listen_branch",
+		"content" : { "choices": {
+							"oui" : "state_prenom",
+							"pas maintenant" : "state_prenom",
+							"non" : "state_bonjour",
+							"ok" : "state_bonjour",
+							"d'accord": "state_bonjour",
+							"default" : "state_bonjour",
+					},
+		},
+	},
+	
+	"state_prenom" : {
+		"type" : "speak",
+		"content" : { 	"type" : "normal",
+						"content" : "Quel est votre prénom ?",
+		},
+		"next" : "state_prenom_rep",
+	},
+	
+	"state_prenom_rep" : {
+		"type" : "listen_store",
+		"content" : { 	"variable" : "prenom",
+		},
+		"next" : "state_prenom_repeter",
+	},
+	
+	"state_prenom_repeter" : {
+		"type" : "speak_store",
+		"content_1" : { "type" : "normal",
+						"content" : "Enchanté ",
+		},
+		"content_2" : { "type" : "normal",
+						"variable" : "prenom",
+		},
+		"content_3" : { "type" : "normal",
+						"content" : "",
+		},
+		"next": "state_role",
+	},
+	
+	"state_role" : {
+		"type" : "speak",
+		"content" : { 	"type" : "normal",
+						"content" : "Mon rôle est de guider les visiteurs dans le musée. Je me déplace en roulant tout en évitant les obstacles.",
+		},
+		"next" : "state_deplacement",
+	},
+	
+	"state_deplacement": {
+		"type" : "timed_move",
+		"content" : { 	"T1" : 3,
+						"M1" : { "L_motor": 1,
+								"R_motor" : 1,
+						},
+						"T2" : 1,
+						"M2" : { "L_motor": 1,
+								"R_motor" : 0,
+						},
+						"T3" : 3,
+						"M3" : { "L_motor": -1,
+								"R_motor" : -1,
+						},
+						"T4" : 1,
+						"M4" : { "L_motor": 0,
+								"R_motor" : 1,
+						},
+		},		
+		"next": "state_theme",
+	},
+
+	"state_theme": {
+		"type" : "speak",
+		"content" : { 	"type" : "normal",
+						"content" : "Je peux vous proposer trois thématiques de visite : la porcelaine, l'archéologie dans le Hainaut ou l'histoire de Raoul Warocqué. Vous pouvez sélectionner la thématique choisie sur mon écran tactile ou simplement en énonçant votre choix. Si je puis vous conseiller, j'aime beaucoup l'histoire de Raoul Warocqué. Quelle thématique désirez-vous suivre ?",
+		},
+		"next" : "state_theme_rep",
+	},
+	
+	"state_theme_rep" : {
+		"type" : "listen_branch",
+		"content" : { "choices": {
+							"porcelaine" : "state_porcelaine",
+							"archeologie" : "state_archeo",
+							"Warocque" : "state_warocque",
+							"Raoul" : "state_warocque",
+							"Raoul_Warocque" : "state_warocque",
+							"default" : "state_theme_repeter",
+					},
+		},
+	},
+	
+	"state_theme_repeter" : {
+		"type" : "speak",
+		"content" : { 	"type" : "normal",
+						"content" : "Pourriez-vous répéter? Je n'ai pas compris.",
+		},
+		"next" : "state_theme_rep"
+	},
+	
+	"state_porcelaine" : {
+		"type" : "speak",
+		"content" : { 	"type" : "normal",
+						"content" : "La porcelaine est un très bon choix mais mes connaissances dans le domaine ne sont pas encore très étendues. Je préférerais vous parler de Raoul Warocqué.",
+		},
+		"next" : "state_warocque"
+	},
+	
+	"state_archeo" : {
+		"type" : "speak",
+		"content" : { 	"type" : "normal",
+						"content" : "L'archéologie dans le Hainaut est un très bon choix mais mes connaissances dans le domaine ne sont pas encore très étendues. Je préférerais vous parler de Raoul Warocqué car il est à la base de l'existence du Musée Royal de Mariemont.",
+		},
+		"next" : "state_warocque"
+	},
+		
+	
+	"state_warocque": {
+		"type" : "speak",
+		"content" : { 	"type" : "normal",
+						"content" : "Raoul Warocqué est un homme d'affaires dont la famille occupa une position dominante dans l'industrie charbonnière belge dès le début du dix-neuvième siècle. Il est le dernier des descendants de sa famille dont je vous montre quelques portraits à l'instant. Il incarne la tendance sociale et philanthropique, quelquefois qualifiée de paternaliste, de certains patrons de cette époque. En 1899, il fonde l'Institut commercial Warocqué à Mons, devenue aujourd'hui la Faculté Warocqué d'Economie et de Gestion de l'Université de Mons. Grand voyageur et collectionneur avisé, Raoul Warocqué fait don à son décès de sa propriété à Morlanwelz à l'État belge. Celle-ci est devenue le Domaine de Mariemont où, après l'incendie du château, fut construit un bâtiment moderne pour recevoir les collections diverses du mécène wallon: le musée royal de Mariemont. Parmi les trésors artistiques du musée se trouve une riche et unique collection de porcelaine de Tournai, une importante collection d'objets provenant de Chine, ainsi que des vases et des statues de la civilisation hellénique. J'arrête ici mes explications pour ne pas être trop long. Mais j'espère que nous aurons l'occasion de nous revoir au sein du Musée Royal de Mariemont! ",
+		},
+		"next" : "state_default",
+	},
+	
+	"state_default" : {
+		"type" : "idle",
+	}
+}

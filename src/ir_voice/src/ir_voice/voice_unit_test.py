@@ -32,7 +32,8 @@ from voice import *
 # Try speech recognition from class
 rospy.init_node("ir_sr")
 v = Voice()
-v.listen("vieux_frere_3.wav")
+v.listen("fr.wav")
+
 
 # Try starting ROS node
 # v = Voice()

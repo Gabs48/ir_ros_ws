@@ -26,16 +26,16 @@ from fsm import *
 
 
 # Try standalone version
-fsm = BtomtFiniteStateMachine()
-print(fsm.curr_state.__name__ + " " + fsm.prev_state.__name__)
-fsm.start()
-time.sleep(10)
-print(fsm.curr_state.__name__ + " " + fsm.prev_state.__name__)
-fsm.stop()
-time.sleep(10)
-print(fsm.curr_state.__name__ + " " + fsm.prev_state.__name__)
+# fsm = FiniteStateMachine("fsm_btomt.json")
+# print(fsm.curr_state.__name__ + " " + fsm.prev_state.__name__)
+# fsm.start()
+# time.sleep(10)
+# print(fsm.curr_state.__name__ + " " + fsm.prev_state.__name__)
+# fsm.stop()
+# time.sleep(10)
+# print(fsm.curr_state.__name__ + " " + fsm.prev_state.__name__)
 
 # Try ROS version
-# rospy.init_node("ir_fsm")
-# fsm = BtomtFiniteStateMachine()
-# fsm.start_ros_node()
+rospy.init_node("ir_fsm")
+fsm = FiniteStateMachine()
+fsm.start_ros_node()

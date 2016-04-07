@@ -26,6 +26,9 @@ import rospy as ros
 from std_srvs.srv import *
 from std_msgs.msg import String
 import threading
+import demjson
+from types import MethodType
+import time
 
 
 class FiniteStateMachine(threading.Thread):
@@ -34,18 +37,20 @@ class FiniteStateMachine(threading.Thread):
 	calling the *self.start_srv_name* service"
 
 
-	def __init__(self):
-		"Set ROS and FSM parameters"
+	def __init__(self,  filename_="default.json"):
+		"Set ROS parameters and create FSM from file"
 
 		# Threading is used when launched independently from ROS
 		# with the start command
 		threading.Thread.__init__(self)
-
+		
 		# Finite State Machine parameters
 		self.state_var = []
+		self.init_state = self.state_init
 		self.curr_state = self.state_idle
 		self.prev_state = self.state_idle
 		self.running = False
+		self.cust_var = dict()
 
 		# ROS parameters
 		self.queue_size = 1
@@ -54,22 +59,50 @@ class FiniteStateMachine(threading.Thread):
 		self.state_pub_name = "fsm_state"
 		self.run_srv_name = "fsm_run"
 		self.stop_srv_name = "fsm_stop"
+		
+		# Open json file
+		self.filename = filename_
+		with open(self.filename) as fsm_file:    
+			data_str = fsm_file.read().replace('\n', '')
+			data = demjson.decode(data_str)
+			
+			# Create methods from json file and add them to this class
+			for elem in data:
+				if "state_" in elem:   
+					if data[elem]["type"] == "speak":
+						self.__bind_state_speak(elem, data)
+					elif data[elem]["type"] == "speak_store":
+						self.__bind_state_speak_store(elem, data)
+					elif data[elem]["type"] == "timed_move":
+						self.__bind_state_timed_move(elem, data)
+					elif data[elem]["type"] == "listen_store":
+						self.__bind_state_listen_store(elem, data)
+					elif data[elem]["type"] == "listen_branch":
+						self.__bind_state_listen_branch(elem, data)
+					elif data[elem]["type"] == "idle":
+						self.__bind_state_idle(elem, data)
+					else:
+						self.__bind_state_idle(elem, data)
+			
+			# Refer init state
+			for elem in data:
+				if elem == "init_state":
+					self.init_state = getattr(self, data[elem])
 
 
 	def run(self):
 		"Run the FSM"
 
-		# When start running	
-		self.running = True	
-		self.curr_state = self.state_init
+		# When start running
+		self.running = True
+		self.curr_state = self.init_state
 
 		while self.running:
 			self.prev_state = self.curr_state
 			self.curr_state = self.curr_state()
 
-		# When stop running		
+		# When stop running
 		self.curr_state = self.state_idle
-
 		return
 
 
@@ -84,13 +117,155 @@ class FiniteStateMachine(threading.Thread):
 	def state_init(self):
 		"Initial state"
 
-		return self.state_init
+		ros.logwarn("[Default Init] Verify that you refered the field 'init_state' in the json fsm file")
+
+		return self.state_idle
 
 
 	def state_idle(self):
 		"Initial state"
 
 		return self.state_idle
+
+
+	def __bind_state_speak(self, name, data):
+		"Binding function to create a state function of type SPEAK"
+		
+		classname = self
+		
+		# The function added to the class
+		def func(self):
+
+			ros.loginfo("[State Speak] " + str(name))
+			## Here we speak
+			print("Spoken: " + data[name]["content"]["content"])
+			
+			return getattr(classname, data[name]["next"])
+		
+		func.__name__ = str(name)
+		exec("self." + str(name) + " = MethodType(func, FiniteStateMachine, self)" ) \
+			in globals(), locals()
+		return
+
+
+	def __bind_state_listen_branch(self, name, data):
+		"Binding function to create a state function of type LISTEN BRANCH"
+		
+		classname = self
+		
+		# The function added to the class
+		def func(self):
+
+			ros.loginfo("[State Listen Branch] " + str(name))
+			## Here we listen
+			heard = raw_input("Entrez votre choix : ")
+			for branch in data[name]["content"]["choices"]:
+				if heard == str(branch):
+					return getattr(classname, data[name]["content"]["choices"][branch])
+				
+			# If nothing is found, return the default choice
+			return getattr(classname, data[name]["content"]["choices"]["default"])
+		
+		func.__name__ = str(name)
+		exec("self." + str(name) + " = MethodType(func, FiniteStateMachine, self)" ) \
+			in globals(), locals()
+		return
+
+
+	def __bind_state_speak_store(self, name, data):
+		"Binding function to create a state function of type SPEAK STORE"
+
+		classname = self
+		
+		# The function added to the class
+		def func(self):
+
+			ros.loginfo("[State Speak Store] " + str(name))
+			## Here we speak the three parts of the sentence
+			print("Spoken: " + data[name]["content_1"]["content"])
+			print("Spoken: " + classname.cust_var[data[name]["content_2"]["variable"]])
+			print("Spoken: " + data[name]["content_3"]["content"])
+			
+			return getattr(classname, data[name]["next"])
+		
+		func.__name__ = str(name)
+		exec("self." + str(name) + " = MethodType(func, FiniteStateMachine, self)" ) \
+			in globals(), locals()
+		return
+
+
+	def __bind_state_listen_store(self, name, data):
+		"Binding function to create a state function of type LISTEN STORE"
+
+		classname = self
+		
+		# The function added to the class
+		def func(self):
+
+			ros.loginfo("[State Listen Store] " + str(name))
+			## Here we listen and store the value
+			a = raw_input("Entrez votre choix : ")
+			classname.cust_var[data[name]["content"]["variable"]] = a
+			
+			return getattr(classname, data[name]["next"])
+		
+		func.__name__ = str(name)
+		exec("self." + str(name) + " = MethodType(func, FiniteStateMachine, self)" ) \
+			in globals(), locals()
+		return
+
+	
+	def __bind_state_timed_move(self, name, data):
+		"Binding function to create a state function of type TIMED MOVE"
+		
+		classname = self
+		
+		# The function added to the class
+		def func(self):
+
+			ros.loginfo("[State Timed moved] " + str(name))
+			## Here we move
+			return getattr(classname, data[name]["next"])
+		
+		func.__name__ = str(name)
+		exec("self." + str(name) + " = MethodType(func, FiniteStateMachine, self)" ) \
+			in globals(), locals()
+		return
+
+	
+	def __bind_state_idle(self, name, data):
+		"Binding function to create a state function of type IDLE"
+		
+		classname = self
+		
+		# The function added to the class
+		def func(self):
+
+			ros.loginfo("[State Idle] " + str(name))
+			## Here we do nothing. Idle function
+			return classname.state_idle()
+		
+		func.__name__ = str(name)
+		exec("self." + str(name) + " = MethodType(func, FiniteStateMachine, self)" ) \
+			in globals(), locals()
+		return
+
+
+	def __bind_state_init(self, name, data):
+		"Binding function to create a state function of type INIT"
+		
+		classname = self
+		
+		# The function added to the class
+		def func(self):
+
+			ros.loginfo("[State Init] " + str(name))
+			return getattr(classname, data[name]["next"])
+		
+		func.__name__ = str(name)
+		exec("self." + str(name) + " = MethodType(func, FiniteStateMachine, self)" ) \
+			in globals(), locals()
+		return
 
 
 	def __ros_state_pub(self):
@@ -133,18 +308,7 @@ class FiniteStateMachine(threading.Thread):
 		return
 
 
-class BtomtFiniteStateMachine(FiniteStateMachine):
-
-	def __init__(self):
-		"Set ROS and FSM parameters"
-
-		# Init parent class
-		super().__init__()
-
-
-
-
 if __name__ == '__main__':
 	
-	fsm = BtomtFiniteStateMachine()
+	fsm = FiniteStateMachine()
 	fsm.start_ros_node()
