@@ -36,6 +36,10 @@ from fsm import *
 # print(fsm.curr_state.__name__ + " " + fsm.prev_state.__name__)
 
 # Try ROS version
+# to test:
+# roscore -p 1234
+# python2 fsm_unit_test.py
+# rosservice call /fsm_run
 rospy.init_node("ir_fsm")
-fsm = FiniteStateMachine()
+fsm = FiniteStateMachine("fsm_btomt.json")
 fsm.start_ros_node()

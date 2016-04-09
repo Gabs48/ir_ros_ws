@@ -57,6 +57,7 @@ class FiniteStateMachine(threading.Thread):
 		self.pub_rate = 0.5
 		self.node_name = "ir_fsm"
 		self.state_pub_name = "fsm_state"
+		self.voice_pub_name = "voice_ss"
 		self.run_srv_name = "fsm_run"
 		self.stop_srv_name = "fsm_stop"
 		
@@ -125,6 +126,7 @@ class FiniteStateMachine(threading.Thread):
 	def state_idle(self):
 		"Initial state"
 
+		time.sleep(1)
 		return self.state_idle
 
 
@@ -137,8 +139,8 @@ class FiniteStateMachine(threading.Thread):
 		def func(self):
 
 			ros.loginfo("[State Speak] " + str(name))
-			## Here we speak
-			print("Spoken: " + data[name]["content"]["content"])
+			ros.loginfo("Spoken: " + data[name]["content"]["content"].encode('utf-8'))
+			classname.voice_pub.publish(data[name]["content"]["content"])
 			
 			return getattr(classname, data[name]["next"])
 		
@@ -157,7 +159,13 @@ class FiniteStateMachine(threading.Thread):
 		def func(self):
 
 			ros.loginfo("[State Listen Branch] " + str(name))
-			## Here we listen
+
+			## Wait for the bluetooth activation
+
+			## Start listening
+
+			## Stop when it's down
+			
 			heard = raw_input("Entrez votre choix : ")
 			for branch in data[name]["content"]["choices"]:
 				if heard == str(branch):
@@ -182,9 +190,11 @@ class FiniteStateMachine(threading.Thread):
 
 			ros.loginfo("[State Speak Store] " + str(name))
 			## Here we speak the three parts of the sentence
-			print("Spoken: " + data[name]["content_1"]["content"])
-			print("Spoken: " + classname.cust_var[data[name]["content_2"]["variable"]])
-			print("Spoken: " + data[name]["content_3"]["content"])
+			sentence = data[name]["content_1"]["content"].encode('utf-8') + \
+				classname.cust_var[data[name]["content_2"]["variable"]] + \
+				data[name]["content_3"]["content"].encode('utf-8')
+			ros.loginfo("Spoken: " + sentence)
+			classname.voice_pub.publish(sentence)
 			
 			return getattr(classname, data[name]["next"])
 		
@@ -274,7 +284,7 @@ class FiniteStateMachine(threading.Thread):
 		rate = ros.Rate(self.pub_rate)
 		while not ros.is_shutdown():
 			ros.loginfo("Current State: " + str(self.curr_state.__name__))
-			self.pub.publish(str(self.curr_state.__name__))
+			self.state_pub.publish(str(self.curr_state.__name__))
 			rate.sleep()
 
 		return
@@ -283,7 +293,7 @@ class FiniteStateMachine(threading.Thread):
 	def __ros_run_srv(self, msg):
 		"Run the FSM via a ROS service"
 
-		self.run()
+		self.start()
 
 
 	def __ros_stop_srv(self, msg):
@@ -296,9 +306,10 @@ class FiniteStateMachine(threading.Thread):
 		"Start ROS node and its publishers and services"
 
 		ros.init_node(self.node_name)
-		self.pub = ros.Publisher(self.state_pub_name, String, queue_size=self.queue_size)
-		self.srv = ros.Service(self.run_srv_name, Empty, self.__ros_run_srv)
-		self.srv = ros.Service(self.stop_srv_name, Empty, self.__ros_stop_srv)
+		self.state_pub = ros.Publisher(self.state_pub_name, String, queue_size=self.queue_size)
+		self.voice_pub = ros.Publisher(self.voice_pub_name, String, queue_size=self.queue_size)
+		self.run_srv = ros.Service(self.run_srv_name, Empty, self.__ros_run_srv)
+		self.stop_srv = ros.Service(self.stop_srv_name, Empty, self.__ros_stop_srv)
 
 		try:
 			self.__ros_state_pub()

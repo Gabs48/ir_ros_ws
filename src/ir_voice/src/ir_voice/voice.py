@@ -26,6 +26,7 @@ import collections
 import rospy as ros
 from std_srvs.srv import *
 from std_msgs.msg import String
+from std_msgs.msg import Bool
 import subprocess
 
 class Voice:
@@ -47,6 +48,7 @@ class Voice:
 		self.language = "fr-FR"
 		self.sr_success_str = ""
 		self.sr_success_bool = False
+		self.mic_open = False
 
 		# Sspeech synthetiser parameters
 		self.ss_batch_name = "voice"
@@ -56,7 +58,8 @@ class Voice:
 		self.pub_rate = 2
 		self.pub_name = "voice_sr"
 		self.srv_name = "rec_mic"
-		self.sub_name = "voice_ss"
+		self.ss_sub_name = "voice_ss"
+		self.mic_sub_name = "mic_open"
 		self.queue_size = 1
 
 
@@ -105,10 +108,11 @@ class Voice:
 
 		# Call batch subprocess
 		args = [self.ss_batch_name]
+		print(sentence_)
 
 		# Add arguments to command line
 		args.extend(["-t", voice_name_])
-		args.extend([sentence_.encode("iso-8859-1","ignore")])
+		args.extend([sentence_.decode('utf-8').encode("iso-8859-1","ignore")])
 
 		# Start batch process and quit
 		ros.loginfo("Acapela SS with " + voice_name_ + ": " + sentence_)
@@ -117,10 +121,18 @@ class Voice:
 		return
 
 
-	def __ros_sub(self, msg):
+	def __ros_ss_sub(self, msg):
 		"ROS subscriber to convert string to speech"
 		
 		self.speak(msg.data)
+
+		return 
+
+
+	def __ros_mic_sub(self, msg):
+		"ROS subscriber to check if we can open the mic"
+		
+		self.mic_open = msg.data
 
 		return 
 
@@ -151,7 +163,8 @@ class Voice:
 
 		ros.init_node(self.node_name)
 		self.pub = ros.Publisher(self.pub_name, String, queue_size=self.queue_size)
-		self.sub = ros.Subscriber(self.sub_name, String, callback=self.__ros_sub, queue_size=self.queue_size)
+		self.sub = ros.Subscriber(self.ss_sub_name, String, callback=self.__ros_ss_sub, queue_size=self.queue_size)
+		self.sub = ros.Subscriber(self.mic_sub_name, Bool, callback=self.__ros_mic_sub, queue_size=self.queue_size)
 		self.srv = ros.Service(self.srv_name, Trigger, self.__ros_srv)
 
 		try:
