@@ -1,0 +1,4 @@
+<launch>
+	<node name="voice" pkg="ir_voice" type="ir_voice" />
+	<node name="fsm" pkg="ir_fsm" type="ir_fsm_btomt" />
+</launch>
