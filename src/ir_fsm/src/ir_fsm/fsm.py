@@ -29,6 +29,7 @@ import threading
 import demjson
 from types import MethodType
 import time
+import subprocess
 
 
 class FiniteStateMachine(threading.Thread):
@@ -80,6 +81,8 @@ class FiniteStateMachine(threading.Thread):
 						self.__bind_state_listen_store(elem, data)
 					elif data[elem]["type"] == "listen_branch":
 						self.__bind_state_listen_branch(elem, data)
+					elif data[elem]["type"] == "video":
+						self.__bind_state_video(elem, data)
 					elif data[elem]["type"] == "idle":
 						self.__bind_state_idle(elem, data)
 					else:
@@ -242,6 +245,33 @@ class FiniteStateMachine(threading.Thread):
 			in globals(), locals()
 		return
 
+	def __bind_state_video(self, name, data):
+		"Binding function to create a state function of type VIDEO"
+		
+		classname = self
+		
+		# The function added to the class
+		def func(self):
+
+			ros.loginfo("[State Timed moved] " + str(name))
+			
+				## We project the video
+			args = [data[name]["content"]["reader"]]
+
+			# Add arguments to command line
+			#args.extend(["-o", "local"])
+			args.extend([data[name]["content"]["file"]])
+
+			# Start batch process and quit
+			ros.loginfo("[State Video] Subprocess: " + str(args))
+			subprocess.call(args)
+
+			return getattr(classname, data[name]["next"])
+		
+		func.__name__ = str(name)
+		exec("self." + str(name) + " = MethodType(func, FiniteStateMachine, self)" ) \
+			in globals(), locals()
+		return
 	
 	def __bind_state_idle(self, name, data):
 		"Binding function to create a state function of type IDLE"

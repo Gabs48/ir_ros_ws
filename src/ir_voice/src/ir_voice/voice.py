@@ -31,7 +31,7 @@ import subprocess
 
 class Voice:
 
-	NORM = "antoine"
+	NORM = "manon"
 	HAPPY = "antoinehappy"
 	SAD = "antoinesad"
 	UPCLOSE = "antoineupclose"

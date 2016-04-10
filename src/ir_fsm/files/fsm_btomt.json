@@ -9,6 +9,7 @@
 							"listen_store", 
 							"speak_store", 
 							"timed_move",
+							"video",
 							"idle",
 						]
 	},
@@ -141,8 +142,15 @@
 		"next" : "state_warocque"
 	},
 		
-	
 	"state_warocque": {
+		"type" : "video",
+		"content" : { 	"reader" : "vlc",
+						"file" : "/home/gabs48/test.webm",
+		},
+		"next" : "state_default",
+	},
+	
+	"state_warocque_audio": {
 		"type" : "speak",
 		"content" : { 	"type" : "normal",
 						"content" : "Raoul Warocqué est un homme d'affaires dont la famille occupa une position dominante dans l'industrie charbonnière belge dès le début du dix-neuvième siècle. Il est le dernier des descendants de sa famille dont je vous montre quelques portraits à l'instant. Il incarne la tendance sociale et philanthropique, quelquefois qualifiée de paternaliste, de certains patrons de cette époque. En 1899, il fonde l'Institut commercial Warocqué à Mons, devenue aujourd'hui la Faculté Warocqué d'Economie et de Gestion de l'Université de Mons. Grand voyageur et collectionneur avisé, Raoul Warocqué fait don à son décès de sa propriété à Morlanwelz à l'État belge. Celle-ci est devenue le Domaine de Mariemont où, après l'incendie du château, fut construit un bâtiment moderne pour recevoir les collections diverses du mécène wallon: le musée royal de Mariemont. Parmi les trésors artistiques du musée se trouve une riche et unique collection de porcelaine de Tournai, une importante collection d'objets provenant de Chine, ainsi que des vases et des statues de la civilisation hellénique. J'arrête ici mes explications pour ne pas être trop long. Mais j'espère que nous aurons l'occasion de nous revoir au sein du Musée Royal de Mariemont! ",
