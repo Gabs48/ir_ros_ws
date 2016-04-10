@@ -4,7 +4,6 @@ project(ir_parrot_test)
 find_package(catkin REQUIRED COMPONENTS
   message_generation
   rospy
-  ir_voice
 )
 
 catkin_python_setup()
