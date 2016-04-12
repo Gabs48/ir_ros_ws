@@ -5,7 +5,8 @@
 		"email" : "gabriel.urbain@ugent.be",
 		"version" : "0.1",
 		"node_types" : 	[	"speak",
-							"listen_branch", 
+							"listen_branch",
+							"bluetooth_branch", 
 							"listen_store", 
 							"speak_store", 
 							"timed_move",
@@ -26,6 +27,14 @@
 	},
 		
 	"state_bonjour_rep" : {
+		"type" : "bluetooth_branch",
+		"content" : { "1" : { "True": "state_prenom",
+							  "False": "state_bonjour_rep",
+					},
+		},
+	},
+	
+	"state_bonjour_rep_list" : {
 		"type" : "listen_branch",
 		"content" : { "choices": {
 							"oui" : "state_prenom",

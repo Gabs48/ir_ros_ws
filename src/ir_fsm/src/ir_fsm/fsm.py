@@ -25,6 +25,8 @@
 import rospy as ros
 from std_srvs.srv import *
 from std_msgs.msg import String
+from std_msgs.msg import ByteMultiArray
+from std_msgs.msg import Int32MultiArray
 import threading
 import demjson
 from types import MethodType
@@ -53,12 +55,19 @@ class FiniteStateMachine(threading.Thread):
 		self.running = False
 		self.cust_var = dict()
 
+		# Find a solution to create this automatically??
+		# ROS nodes are always defined?
+		self.bluetooth = [False, False, False, False, False, False, False, False]
+		self.voice_sr = ""
+
 		# ROS parameters
 		self.queue_size = 1
 		self.pub_rate = 0.5
 		self.node_name = "ir_fsm"
 		self.state_pub_name = "fsm_state"
 		self.voice_pub_name = "voice_ss"
+		self.motor_pub_name = "timed_move"
+		self.bluetooth_sub_name = "listenbt"
 		self.run_srv_name = "fsm_run"
 		self.stop_srv_name = "fsm_stop"
 		
@@ -81,6 +90,8 @@ class FiniteStateMachine(threading.Thread):
 						self.__bind_state_listen_store(elem, data)
 					elif data[elem]["type"] == "listen_branch":
 						self.__bind_state_listen_branch(elem, data)
+					elif data[elem]["type"] == "bluetooth_branch":
+						self.__bind_state_bluetooth_branch(elem, data)
 					elif data[elem]["type"] == "video":
 						self.__bind_state_video(elem, data)
 					elif data[elem]["type"] == "idle":
@@ -102,6 +113,7 @@ class FiniteStateMachine(threading.Thread):
 		self.curr_state = self.init_state
 
 		while self.running:
+			time.sleep(0.1)
 			self.prev_state = self.curr_state
 			self.curr_state = self.curr_state()
 
@@ -173,6 +185,30 @@ class FiniteStateMachine(threading.Thread):
 			for branch in data[name]["content"]["choices"]:
 				if heard == str(branch):
 					return getattr(classname, data[name]["content"]["choices"][branch])
+				
+			# If nothing is found, return the default choice
+			return getattr(classname, data[name]["content"]["choices"]["default"])
+		
+		func.__name__ = str(name)
+		exec("self." + str(name) + " = MethodType(func, FiniteStateMachine, self)" ) \
+			in globals(), locals()
+		return
+
+	def __bind_state_bluetooth_branch(self, name, data):
+		"Binding function to create a state function of type BLUETOOTH BRANCH"
+		
+		classname = self
+		
+		# The function added to the class
+		def func(self):
+
+			ros.loginfo("[State Bluetooth Branch] " + str(name))
+
+			for switch in data[name]["content"]:
+				if classname.bluetooth[int(switch)]:
+					return getattr(classname, data[name]["content"][switch]['True'])
+				else:
+					return getattr(classname, data[name]["content"][switch]['False'])
 				
 			# If nothing is found, return the default choice
 			return getattr(classname, data[name]["content"]["choices"]["default"])
@@ -331,6 +367,23 @@ class FiniteStateMachine(threading.Thread):
 
 		self.stop()
 
+	def __ros_bluetooth_sub(self, msg):
+		"ROS subscriber to check the bluetooth"
+		
+		ros.loginfo("iciii" + str(msg))
+		i = 0
+		for val in msg.data:
+			ros.loginfo("Value " + str(i) + ": " + str(val))
+			if val == '1':
+				self.bluetooth[i] = True
+			else:
+				self.bluetooth[i] = False
+			i += 1
+
+		ros.loginfo(self.bluetooth)
+
+		return 
+
 
 	def start_ros_node(self):
 		"Start ROS node and its publishers and services"
@@ -338,6 +391,11 @@ class FiniteStateMachine(threading.Thread):
 		ros.init_node(self.node_name)
 		self.state_pub = ros.Publisher(self.state_pub_name, String, queue_size=self.queue_size)
 		self.voice_pub = ros.Publisher(self.voice_pub_name, String, queue_size=self.queue_size)
+		self.motor_pub = ros.Publisher(self.motor_pub_name, ByteMultiArray, queue_size=self.queue_size)
+
+		self.bluetooth_sub = ros.Subscriber(self.bluetooth_sub_name, Int32MultiArray, \
+			callback=self.__ros_bluetooth_sub, queue_size=self.queue_size)
+
 		self.run_srv = ros.Service(self.run_srv_name, Empty, self.__ros_run_srv)
 		self.stop_srv = ros.Service(self.stop_srv_name, Empty, self.__ros_stop_srv)
 
