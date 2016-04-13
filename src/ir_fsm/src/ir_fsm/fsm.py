@@ -397,7 +397,7 @@ class FiniteStateMachine(threading.Thread):
 
 		ros.loginfo("Bluetooth state vector:  " + str(self.bluetooth))
 		if str(self.curr_state.__name__) == 'state_idle':
-			if self.bluetooth[0] == True:
+			if self.bluetooth[2] == True:
 				self.start()
 
 

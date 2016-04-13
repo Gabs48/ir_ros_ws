@@ -29,7 +29,7 @@
 		
 	"state_bonjour_rep" : {
 		"type" : "bluetooth_branch",
-		"content" : { "1" : "state_role",
+		"content" : { "3" : "state_role",
 		},
 		"default": "state_bonjour_rep",
 	},
@@ -119,10 +119,10 @@
 	
 	"state_theme_rep" : {
 		"type" : "bluetooth_branch",
-		"content" : { "2" : "state_porcelaine",
-					  "3" : "state_archeo",
-					  "4" : "state_warocque",
-					  "5" : "state_theme_repeter",
+		"content" : { "4" : "state_porcelaine",
+					  "5" : "state_archeo",
+					  "6" : "state_warocque",
+					  "7" : "state_theme_repeter",
 		},
 		"default" : "state_theme_rep",
 	},
