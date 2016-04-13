@@ -33,12 +33,12 @@ import time
 
 # Create node
 rospy.init_node('ir_fsm_test', anonymous=True)
-pub = rospy.Publisher('bluetooth', Int32MultiArray, queue_size=2)
+pub = rospy.Publisher('bluetooth', ByteMultiArray, queue_size=2)
 rate = rospy.Rate(10) # 10hz
 
 # Start process
 time.sleep(2)
-to_pub = Int32MultiArray(layout=MultiArrayLayout([], 1), data=[1, 0, 0, 0, 0, 0, 0, 0])
+to_pub = ByteMultiArray(layout=MultiArrayLayout([], 1), data=[1, 0, 0, 0, 0, 0, 0, 0])
 pub.publish(to_pub)
 
 # # Wait for fsm to be on
@@ -59,11 +59,11 @@ pub.publish(to_pub)
 
 # Wait a bit
 time.sleep(10)
-to_pub = Int32MultiArray(layout=MultiArrayLayout([], 1), data=[0, 1, 0, 0, 0, 0, 0, 0])
+to_pub = ByteMultiArray(layout=MultiArrayLayout([], 1), data=[0, 1, 0, 0, 0, 0, 0, 0])
 pub.publish(to_pub)
 time.sleep(1)
-to_pub = Int32MultiArray(layout=MultiArrayLayout([], 1), data=[0, 0, 0, 0, 0, 0, 0, 0])
+to_pub = ByteMultiArray(layout=MultiArrayLayout([], 1), data=[0, 0, 0, 0, 0, 0, 0, 0])
 pub.publish(to_pub)
 time.sleep(25)
-to_pub = Int32MultiArray(layout=MultiArrayLayout([], 1), data=[0, 0, 0, 1, 0, 0, 0, 0])
+to_pub = ByteMultiArray(layout=MultiArrayLayout([], 1), data=[0, 0, 0, 1, 0, 0, 0, 0])
 pub.publish(to_pub)

@@ -410,9 +410,9 @@ class FiniteStateMachine(threading.Thread):
 		ros.init_node(self.node_name)
 		self.state_pub = ros.Publisher(self.state_pub_name, String, queue_size=self.queue_size)
 		self.voice_pub = ros.Publisher(self.voice_pub_name, String, queue_size=self.queue_size)
-		self.motor_pub = ros.Publisher(self.motor_pub_name, Int32MultiArray, queue_size=self.queue_size)
+		self.motor_pub = ros.Publisher(self.motor_pub_name, ByteMultiArray, queue_size=self.queue_size)
 
-		self.bluetooth_sub = ros.Subscriber(self.bluetooth_sub_name, Int32MultiArray, \
+		self.bluetooth_sub = ros.Subscriber(self.bluetooth_sub_name, ByteMultiArray, \
 			callback=self.__ros_bluetooth_sub, queue_size=self.queue_size)
 
 		self.run_srv = ros.Service(self.run_srv_name, Empty, self.__ros_run_srv)
