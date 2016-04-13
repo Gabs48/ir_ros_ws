@@ -13,5 +13,5 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-catkin_install_python(PROGRAMS bin/ir_fsm_test
+catkin_install_python(PROGRAMS bin/ir_fsm_test bin/ir_fsm_test_rec
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

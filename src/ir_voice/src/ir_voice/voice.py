@@ -60,7 +60,7 @@ class Voice:
 		self.srv_name = "rec_mic"
 		self.ss_sub_name = "voice_ss"
 		self.mic_sub_name = "mic_open"
-		self.queue_size = 1
+		self.queue_size = 2
 
 
 	def listen(self, source_wav_=None):

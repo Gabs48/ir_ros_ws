@@ -27,6 +27,7 @@ from std_srvs.srv import *
 from std_msgs.msg import String
 from std_msgs.msg import ByteMultiArray
 from std_msgs.msg import Int32MultiArray
+from std_msgs.msg import MultiArrayLayout
 import threading
 import demjson
 from types import MethodType
@@ -61,13 +62,13 @@ class FiniteStateMachine(threading.Thread):
 		self.voice_sr = ""
 
 		# ROS parameters
-		self.queue_size = 1
+		self.queue_size = 2
 		self.pub_rate = 0.5
 		self.node_name = "ir_fsm"
 		self.state_pub_name = "fsm_state"
 		self.voice_pub_name = "voice_ss"
 		self.motor_pub_name = "timed_move"
-		self.bluetooth_sub_name = "listenbt"
+		self.bluetooth_sub_name = "bluetooth"
 		self.run_srv_name = "fsm_run"
 		self.stop_srv_name = "fsm_stop"
 		
@@ -113,7 +114,7 @@ class FiniteStateMachine(threading.Thread):
 		self.curr_state = self.init_state
 
 		while self.running:
-			time.sleep(0.1)
+			time.sleep(0.01)
 			self.prev_state = self.curr_state
 			self.curr_state = self.curr_state()
 
@@ -141,7 +142,8 @@ class FiniteStateMachine(threading.Thread):
 	def state_idle(self):
 		"Initial state"
 
-		time.sleep(1)
+		time.sleep(0.1)
+
 		return self.state_idle
 
 
@@ -156,7 +158,13 @@ class FiniteStateMachine(threading.Thread):
 			ros.loginfo("[State Speak] " + str(name))
 			ros.loginfo("Spoken: " + data[name]["content"]["content"].encode('utf-8'))
 			classname.voice_pub.publish(data[name]["content"]["content"])
-			
+
+			# Debug waiting if needed
+			ros.loginfo("Waiting: " + str(int(data[name]["wait"])) + " s")
+			ros.loginfo(time.time())
+			time.sleep(int(data[name]["wait"]))
+			ros.loginfo(time.time())
+
 			return getattr(classname, data[name]["next"])
 		
 		func.__name__ = str(name)
@@ -206,12 +214,10 @@ class FiniteStateMachine(threading.Thread):
 
 			for switch in data[name]["content"]:
 				if classname.bluetooth[int(switch)]:
-					return getattr(classname, data[name]["content"][switch]['True'])
-				else:
-					return getattr(classname, data[name]["content"][switch]['False'])
-				
+					return getattr(classname, data[name]["content"][switch])
+			
 			# If nothing is found, return the default choice
-			return getattr(classname, data[name]["content"]["choices"]["default"])
+			return getattr(classname, data[name]["default"])
 		
 		func.__name__ = str(name)
 		exec("self." + str(name) + " = MethodType(func, FiniteStateMachine, self)" ) \
@@ -234,7 +240,13 @@ class FiniteStateMachine(threading.Thread):
 				data[name]["content_3"]["content"].encode('utf-8')
 			ros.loginfo("Spoken: " + sentence)
 			classname.voice_pub.publish(sentence)
-			
+
+			# Debug waiting if needed
+			ros.loginfo("Waiting: " + str(int(data[name]["wait"])) + " s")
+			print(time.time())
+			time.sleep(int(data[name]["wait"]))
+			print(time.time())
+
 			return getattr(classname, data[name]["next"])
 		
 		func.__name__ = str(name)
@@ -273,7 +285,11 @@ class FiniteStateMachine(threading.Thread):
 		def func(self):
 
 			ros.loginfo("[State Timed moved] " + str(name))
-			## Here we move
+
+			to_pub = Int32MultiArray(layout=MultiArrayLayout([], 1), data=[1, 0, 0, 0, 0, 0, 0, 0])
+			classname.motor_pub.publish(to_pub)
+
+			time.sleep(5)
 			return getattr(classname, data[name]["next"])
 		
 		func.__name__ = str(name)
@@ -370,17 +386,20 @@ class FiniteStateMachine(threading.Thread):
 	def __ros_bluetooth_sub(self, msg):
 		"ROS subscriber to check the bluetooth"
 		
-		ros.loginfo("iciii" + str(msg))
+		ros.loginfo("Bluetooth message received:  " + str(msg.data))
 		i = 0
 		for val in msg.data:
-			ros.loginfo("Value " + str(i) + ": " + str(val))
-			if val == '1':
+			if val == 1:
 				self.bluetooth[i] = True
 			else:
 				self.bluetooth[i] = False
 			i += 1
 
-		ros.loginfo(self.bluetooth)
+		ros.loginfo("Bluetooth state vector:  " + str(self.bluetooth))
+		if str(self.curr_state.__name__) == 'state_idle':
+			if self.bluetooth[0] == True:
+				self.start()
+
 
 		return 
 
@@ -391,7 +410,7 @@ class FiniteStateMachine(threading.Thread):
 		ros.init_node(self.node_name)
 		self.state_pub = ros.Publisher(self.state_pub_name, String, queue_size=self.queue_size)
 		self.voice_pub = ros.Publisher(self.voice_pub_name, String, queue_size=self.queue_size)
-		self.motor_pub = ros.Publisher(self.motor_pub_name, ByteMultiArray, queue_size=self.queue_size)
+		self.motor_pub = ros.Publisher(self.motor_pub_name, Int32MultiArray, queue_size=self.queue_size)
 
 		self.bluetooth_sub = ros.Subscriber(self.bluetooth_sub_name, Int32MultiArray, \
 			callback=self.__ros_bluetooth_sub, queue_size=self.queue_size)
@@ -404,6 +423,7 @@ class FiniteStateMachine(threading.Thread):
 		except ros.ROSInterruptException:
 			pass
 
+		self.stop()
 		return
 
 

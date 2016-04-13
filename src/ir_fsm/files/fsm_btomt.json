@@ -21,17 +21,17 @@
 	"state_bonjour" : {
 		"type" : "speak",
 		"content" : { 	"type" : "normal",
-						"content" : "Bonjour chers visiteur du BtoMT, mon nom est Milo. J'aimerais un jour vous faire visiter le musée royal de Mariemont mais je ne suis encore qu'un prototype. Puis-je vous faire une petite démonstration ?",
+						"content" : "Bonjour chers visiteur du B T O M T, mon nom est Milo. J'aimerais un jour vous faire visiter le musée royal de Mariemont mais je ne suis encore qu'un prototype. Puis-je vous faire une petite démonstration ?",
 		},
+		"wait": "0",
 		"next" : "state_bonjour_rep",
 	},
 		
 	"state_bonjour_rep" : {
 		"type" : "bluetooth_branch",
-		"content" : { "1" : { "True": "state_prenom",
-							  "False": "state_bonjour_rep",
-					},
+		"content" : { "1" : "state_role",
 		},
+		"default": "state_bonjour_rep",
 	},
 	
 	"state_bonjour_rep_list" : {
@@ -73,6 +73,7 @@
 		"content_3" : { "type" : "normal",
 						"content" : "",
 		},
+		"wait": "2",
 		"next": "state_role",
 	},
 	
@@ -81,6 +82,7 @@
 		"content" : { 	"type" : "normal",
 						"content" : "Mon rôle est de guider les visiteurs dans le musée. Je me déplace en roulant tout en évitant les obstacles.",
 		},
+		"wait": "0",
 		"next" : "state_deplacement",
 	},
 	
@@ -111,10 +113,21 @@
 		"content" : { 	"type" : "normal",
 						"content" : "Je peux vous proposer trois thématiques de visite : la porcelaine, l'archéologie dans le Hainaut ou l'histoire de Raoul Warocqué. Vous pouvez sélectionner la thématique choisie sur mon écran tactile ou simplement en énonçant votre choix. Si je puis vous conseiller, j'aime beaucoup l'histoire de Raoul Warocqué. Quelle thématique désirez-vous suivre ?",
 		},
+		"wait": "0",
 		"next" : "state_theme_rep",
 	},
 	
 	"state_theme_rep" : {
+		"type" : "bluetooth_branch",
+		"content" : { "2" : "state_porcelaine",
+					  "3" : "state_archeo",
+					  "4" : "state_warocque",
+					  "5" : "state_theme_repeter",
+		},
+		"default" : "state_theme_rep",
+	},
+	
+	"state_theme_rep_list" : {
 		"type" : "listen_branch",
 		"content" : { "choices": {
 							"porcelaine" : "state_porcelaine",
@@ -140,6 +153,7 @@
 		"content" : { 	"type" : "normal",
 						"content" : "La porcelaine est un très bon choix mais mes connaissances dans le domaine ne sont pas encore très étendues. Je préférerais vous parler de Raoul Warocqué.",
 		},
+		"wait": "12",
 		"next" : "state_warocque"
 	},
 	
@@ -148,6 +162,7 @@
 		"content" : { 	"type" : "normal",
 						"content" : "L'archéologie dans le Hainaut est un très bon choix mais mes connaissances dans le domaine ne sont pas encore très étendues. Je préférerais vous parler de Raoul Warocqué car il est à la base de l'existence du Musée Royal de Mariemont.",
 		},
+		"wait": "15",
 		"next" : "state_warocque"
 	},
 		
@@ -164,6 +179,7 @@
 		"content" : { 	"type" : "normal",
 						"content" : "Raoul Warocqué est un homme d'affaires dont la famille occupa une position dominante dans l'industrie charbonnière belge dès le début du dix-neuvième siècle. Il est le dernier des descendants de sa famille dont je vous montre quelques portraits à l'instant. Il incarne la tendance sociale et philanthropique, quelquefois qualifiée de paternaliste, de certains patrons de cette époque. En 1899, il fonde l'Institut commercial Warocqué à Mons, devenue aujourd'hui la Faculté Warocqué d'Economie et de Gestion de l'Université de Mons. Grand voyageur et collectionneur avisé, Raoul Warocqué fait don à son décès de sa propriété à Morlanwelz à l'État belge. Celle-ci est devenue le Domaine de Mariemont où, après l'incendie du château, fut construit un bâtiment moderne pour recevoir les collections diverses du mécène wallon: le musée royal de Mariemont. Parmi les trésors artistiques du musée se trouve une riche et unique collection de porcelaine de Tournai, une importante collection d'objets provenant de Chine, ainsi que des vases et des statues de la civilisation hellénique. J'arrête ici mes explications pour ne pas être trop long. Mais j'espère que nous aurons l'occasion de nous revoir au sein du Musée Royal de Mariemont! ",
 		},
+		"wait": "0",
 		"next" : "state_default",
 	},
 	
