@@ -168,8 +168,8 @@
 		
 	"state_warocque": {
 		"type" : "video",
-		"content" : { 	"reader" : "vlc",
-						"file" : "/home/gabs48/test.webm",
+		"content" : { 	"reader" : "omxplayer",
+						"file" : "/home/gabs48/vid.mp4",
 		},
 		"next" : "state_default",
 	},
